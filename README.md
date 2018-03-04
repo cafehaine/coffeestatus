@@ -2,7 +2,8 @@
 ## What is luastatus?
 luastatus is a simple status generator to be used with any i3-compatible bars. It comes with a few modules that should be enough for any kind of day to day uses.
 ## How do I install this?
-When `install.sh` will be written you will just have to clone this repo and then run `sudo ./install.sh`, but at the moment you'll have to the things manually.
+Just clone this repo and then run `sudo ./install.sh`.
+Aur package for arch comming soon.
 ## What are the included modules?
 A few notable modules are:
  - mpd - It displays the current mpd track and it's progress, allows you to change the volume, skip to next track, play/pause and go to previous track.
