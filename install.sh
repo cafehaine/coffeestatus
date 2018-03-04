@@ -13,6 +13,6 @@ mkdir -p ${INSTALLROOT}/etc
 cp default_conf.json ${INSTALLROOT}/etc/luastatus_conf.json
 
 # install base modules
-mkdir -p /usr/share/luastatus/modules
+mkdir -p ${INSTALLROOT}/usr/share/luastatus/modules
 cp modules/* ${INSTALLROOT}/usr/share/luastatus/modules/
 
