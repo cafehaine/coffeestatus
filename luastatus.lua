@@ -94,10 +94,10 @@ local function findModule(moduleName)
 		tmpfile:close()
 		return home.."/.luastatus/"..moduleName..".lua"
 	end
-	tmpfile = io.open("/usr/share/luastatus/"..moduleName..".lua")
+	tmpfile = io.open("/usr/share/luastatus/modules/"..moduleName..".lua")
 	if tmpfile ~= nil then
 		tmpfile:close()
-		return "/usr/share/luastatus/"..moduleName..".lua"
+		return "/usr/share/luastatus/modules/"..moduleName..".lua"
 	end
 	return nil
 end
