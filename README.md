@@ -9,6 +9,7 @@ A few notable modules are:
  - mpd - It displays the current mpd track and it's progress, allows you to change the volume, skip to next track, play/pause and go to previous track.
  - mem - It displays the current memory usage on your system
  - pulse - It displays the current volume of your active pulseaudio sink. Sadly it is kinda hard to setup. Check [the wiki page for the pulse module](https://github.com/cafehaine/luastatus/wiki/pulse-module) for more info on how to set it up.
+
 For a complete list of the included modules check [this wiki page](https://github.com/cafehaine/luastatus/wiki/Modules)
 ## I created a few modules, do you want to include them in luastatus?
 Yes! However for your modules to be included they should follow a few rules:
