@@ -12,5 +12,6 @@ install -d "${INSTALLROOT}"/etc
 install -m644 default_conf.json "${INSTALLROOT}"/etc/coffeestatus_conf.json
 
 # install base modules
-install -m644 -D modules/* "${INSTALLROOT}"/usr/share/coffeestatus/modules/
+install -d "${INSTALLROOT}"/usr/share/coffeestatus/modules
+install -m644 modules/* "${INSTALLROOT}"/usr/share/coffeestatus/modules/
 
