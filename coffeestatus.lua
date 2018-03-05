@@ -12,7 +12,7 @@
 
 print('{"version":1,"click_events":true}')
 print("[")
-print('[{"full_text":"Loading luastatus"}],')
+print('[{"full_text":"Loading coffeestatus"}],')
 io.flush()
 
 local posix = require("posix")
@@ -27,9 +27,9 @@ local sleep = socket.sleep
 local gettime = socket.gettime
 -- remove access to print in order to prevent devs from "crashing" i3bar with
 -- random garbage in stdout
-local logfile = io.open("/tmp/luastatus_log","w")
+local logfile = io.open("/tmp/coffeestatus_log","w")
 
--- act as a replacement for print, outputing everything in /tmp/luastatus_log
+-- act as a replacement for print, outputing everything in /tmp/coffeestatus_log
 local function log(...)
 	for i = 1, select("#", ...) do
 		logfile:write(tostring(select(i,...)).."\t")
@@ -62,11 +62,11 @@ local function handleError(message)
 	log("--------------")
 	log(message)
 	while 1 do
-		p('[{"full_text":"An error happened, look at /tmp/luastatus_log for more."}],')
+		p('[{"full_text":"An error happened, look at /tmp/coffeestatus_log for more."}],')
 		io.flush()
 		sleep(1)
 		if errorInputCheck() then return end
-		p('[{"full_text":"Click the bar to try and continue running. This might make luastatus unstable."}],')
+		p('[{"full_text":"Click the bar to try and continue running. This might make coffeestatus unstable."}],')
 		io.flush()
 		sleep(1)
 		if errorInputCheck() then return end
@@ -79,7 +79,7 @@ end
 local modules = {}
 local timers = {}
 local home = os.getenv("HOME")
-local conf = io.open(home .. "/.luastatus/conf.json") or io.open("/etc/luastatus_conf.json")
+local conf = io.open(home .. "/.coffeestatus/conf.json") or io.open("/etc/coffeestatus_conf.json")
 local status, value = pcall(cjson.decode,conf:read("*a"))
 if not status then
 	handleError("Failed to read configuration file:\n"..value)
@@ -89,15 +89,15 @@ conf:close()
 
 -- module location
 local function findModule(moduleName)
-	local tmpfile = io.open(home.."/.luastatus/"..moduleName..".lua")
+	local tmpfile = io.open(home.."/.coffeestatus/"..moduleName..".lua")
 	if tmpfile ~= nil then
 		tmpfile:close()
-		return home.."/.luastatus/"..moduleName..".lua"
+		return home.."/.coffeestatus/"..moduleName..".lua"
 	end
-	tmpfile = io.open("/usr/share/luastatus/modules/"..moduleName..".lua")
+	tmpfile = io.open("/usr/share/coffeestatus/modules/"..moduleName..".lua")
 	if tmpfile ~= nil then
 		tmpfile:close()
-		return "/usr/share/luastatus/modules/"..moduleName..".lua"
+		return "/usr/share/coffeestatus/modules/"..moduleName..".lua"
 	end
 	return nil
 end
@@ -109,7 +109,7 @@ for i=1, #to_load do
 	io.flush()
 	local path = findModule(to_load[i].name)
 	if path == nil then
-		handleError("Could not find module '" .. to_load[i].name .. "' in ~/.luastatus or /usr/share/luastatus")
+		handleError("Could not find module '" .. to_load[i].name .. "' in ~/.coffeestatus or /usr/share/coffeestatus")
 		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=function()end, click=function()end, interval=100000}
 		timers[i] = modules[i].interval
 	else
