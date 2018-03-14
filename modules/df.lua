@@ -1,6 +1,6 @@
 local d = {}
 
-local blacklist = ARGS.blacklist
+local blacklist = ARGS.blacklist or {}
 d.name = "df"
 d.interval = 60
 
