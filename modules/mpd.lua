@@ -131,7 +131,11 @@ function m.update()
 				marqueedir = 1
 				track = newTrack
 			end
-			progress = status.elapsed / status.duration
+			if state == "play" or state == "pause" then
+				progress = status.elapsed / status.duration
+			else
+				progress = 0
+			end
 		else
 			state = "err"
 			track = "Can't connect to MPD"
