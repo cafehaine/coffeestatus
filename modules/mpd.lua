@@ -174,14 +174,20 @@ function m.click(arg)
 			tick = 3
 		-- scroll up = vol up
 		elseif arg.button == 4 then
-			local newvol = math.min(status.volume + 2, 100)
-			query("setvol " .. newvol)
-			m.status = volStatus(newvol)
+			-- If state is stopped, volume is nil
+			if status.volume then
+				local newvol = math.min(status.volume + 2, 100)
+				query("setvol " .. newvol)
+				m.status = volStatus(newvol)
+			end
 		-- scroll down = vol down
 		elseif arg.button == 5 then
-			local newvol = math.max(status.volume - 2, 0)
-			query("setvol " .. newvol)
-			m.status = volStatus(newvol)
+			-- If state is stopped, volume is nil
+			if status.volume then
+				local newvol = math.max(status.volume - 2, 0)
+				query("setvol " .. newvol)
+				m.status = volStatus(newvol)
+			end
 		end
 	end
 end
