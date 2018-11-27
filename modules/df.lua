@@ -12,7 +12,7 @@ end
 blacklist = tmp
 
 d.name = "df"
-d.interval = 60
+d.interval = 10
 
 local function getMountPoints()
 	local output = {}
@@ -41,7 +41,7 @@ function d.update()
 	local concat = {}
 	for k,tab in ipairs(mountpoints) do
 		local stats = statvfs(tab.fs)
-		local per = math.floor(stats.f_bfree / stats.f_blocks *100).."%"
+		local per = math.floor((1 - stats.f_bavail / stats.f_blocks) *100).."%"
 		concat[#concat+1] = tab.name..":"..formatPercent(per)
 	end
 	d.status = table.concat(concat," ")
