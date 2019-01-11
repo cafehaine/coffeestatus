@@ -31,10 +31,11 @@ local logfile = io.open("/tmp/coffeestatus_log","w")
 
 -- act as a replacement for print, outputing everything in /tmp/coffeestatus_log
 local function log(...)
+	local output = {}
 	for i = 1, select("#", ...) do
-		logfile:write(tostring(select(i,...)).."\t")
+		output[i] = tostring(select(i,...))
 	end
-	logfile:write("\n")
+	logfile:write(table.concat(output, "\t").."\n")
 	logfile:flush()
 end
 
