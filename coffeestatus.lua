@@ -10,6 +10,63 @@
      [ archlinux package: extra/lua-luajson ]
 ]]
 
+-- Return the value of an environment variable or default if it isn't set or is
+-- empty.
+local function getenv(variable, default)
+	local value = os.getenv(variable)
+	if not value or value == "" then
+		return default
+	end
+	return value
+end
+
+-- Return the first valid path for a file, starting from the end of the paths
+-- table.
+local function filepath(filename, paths)
+	for i=#paths, 1, -1 do
+		file = io.open(paths[i]..filename)
+		if file then
+			file:close()
+			return paths[i]..filename
+		end
+	end
+	return nil
+end
+
+-- Detect if running dev or installed version based on the script's name
+MODE = "installed"
+if arg[0]:sub(-4) == ".lua" then
+	MODE = "dev"
+end
+
+-- Path of coffeestatus
+BINARY_PATH = arg[0]:match(".*/") or "./"
+
+-- Home
+HOME = os.getenv("HOME").."/"
+
+-- Paths for modules
+if MODE == "installed" then
+	local xdg_data_home = getenv("XDG_DATA_HOME", HOME..".local/share").."/"
+	MODULE_PATHS = {
+		BINARY_PATH.."../lib/coffeestatus/modules/",
+		HOME..".coffeestatus/",
+		xdg_data_home.."coffeestatus/modules/",
+	}
+else
+	MODULE_PATHS = {BINARY_PATH.."modules/"}
+end
+
+-- Paths for config
+CONFIG_PATHS = {
+	"/etc/coffeestatus_conf.json",
+	HOME..".coffeestatus/conf.json",
+	getenv("XDG_CONFIG_HOME", HOME..".config").."/coffeestatus/conf.json",
+}
+if MODE == "dev" then
+	table.insert(CONFIG_PATHS, 1, BINARY_PATH.."default_conf.json")
+end
+
 print('{"version":1,"click_events":true}')
 print("[")
 print('[{"full_text":"Loading coffeestatus"}],')
@@ -81,7 +138,7 @@ end
 local modules = {}
 local timers = {}
 local home = os.getenv("HOME")
-local conf = io.open(home .. "/.coffeestatus/conf.json") or io.open("/etc/coffeestatus_conf.json")
+local conf = io.open(filepath("", CONFIG_PATHS))
 local status, value = pcall(json.decode,conf:read("*a"))
 if not status then
 	handleError("Failed to read configuration file:\n"..value)
@@ -89,29 +146,13 @@ end
 to_load = value
 conf:close()
 
--- module location
-local function findModule(moduleName)
-	local tmpfile = io.open(home.."/.coffeestatus/"..moduleName..".lua")
-	if tmpfile ~= nil then
-		tmpfile:close()
-		return home.."/.coffeestatus/"..moduleName..".lua"
-	end
-	tmpfile = io.open("/usr/share/coffeestatus/modules/"..moduleName..".lua")
-	if tmpfile ~= nil then
-		tmpfile:close()
-		return "/usr/share/coffeestatus/modules/"..moduleName..".lua"
-	end
-	return nil
-end
-
-
 for i=1, #to_load do
 	_G.ARGS = to_load[i]
 	p('[{"full_text":"Loading module ' ..i.. "/" ..#to_load.. '"}],')
 	io.flush()
-	local path = findModule(to_load[i].name)
+	local path = filepath(to_load[i].name..".lua", MODULE_PATHS)
 	if path == nil then
-		handleError("Could not find module '" .. to_load[i].name .. "' in ~/.coffeestatus or /usr/share/coffeestatus")
+		handleError("Could not find module '" .. to_load[i].name .. "'")
 		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=function()end, click=function()end, interval=100000}
 		timers[i] = modules[i].interval
 	else
