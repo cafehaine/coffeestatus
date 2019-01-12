@@ -6,8 +6,8 @@
      [ archlinux package: community/lua-socket ]
  - luaposix   : used for "nonblocking" io to read clicks from i3bar
      [ archlinux package: aur/lua-posix ]
- - lua-cjson  : used to communicate back and forth with i3bar
-     [ archlinux package: aur/lua-cjson ]
+ - luajson  : used to communicate back and forth with i3bar
+     [ archlinux package: extra/luajson ]
 ]]
 
 print('{"version":1,"click_events":true}')
@@ -19,12 +19,13 @@ local posix = require("posix")
 local rpoll = require("posix.poll").rpoll
 local stdin = require("posix.unistd").STDIN_FILENO
 local socket = require("socket")
-local cjson = require("cjson")
+local json = require("json")
 
 -- if you don't want to use luasocket at all, replace the following functions
 -- to another module that you want to use
 local sleep = socket.sleep
 local gettime = socket.gettime
+
 -- remove access to print in order to prevent devs from "crashing" i3bar with
 -- random garbage in stdout
 local logfile = io.open("/tmp/coffeestatus_log","w")
@@ -81,7 +82,7 @@ local modules = {}
 local timers = {}
 local home = os.getenv("HOME")
 local conf = io.open(home .. "/.coffeestatus/conf.json") or io.open("/etc/coffeestatus_conf.json")
-local status, value = pcall(cjson.decode,conf:read("*a"))
+local status, value = pcall(json.decode,conf:read("*a"))
 if not status then
 	handleError("Failed to read configuration file:\n"..value)
 end
@@ -138,7 +139,7 @@ local function handleInput(str)
 	elseif string.sub(str,1,1) == "," then
 		str = string.sub(str,2)
 	end
-	local table = cjson.decode(str)
+	local table = json.decode(str)
 	local inst = tonumber(table.instance)
 	local oldstatus = modules[inst].status
 	local status, value = pcall(modules[inst].click, table)
@@ -227,7 +228,7 @@ while 1 do
 			else
 				tab.full_text = modules[i].status
 			end
-			line[i] = cjson.encode(tab)
+			line[i] = json.encode(tab)
 		end
 		output = "["..table.concat(line,",").."],"
 		changed = false
