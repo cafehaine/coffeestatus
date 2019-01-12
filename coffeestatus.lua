@@ -105,34 +105,11 @@ _G.print = log
 
 print("Log started on " .. os.date())
 
--- check for new input from error mode
-local function errorInputCheck()
-	if rpoll(stdin,0) == 1 then
-		local str = io.read()
-		-- it was the first time the bar was clicked, read twice
-		if str == "[" then
-			io.read()
-		end
-		return true
-	end
-	return false
-end
-
--- error mode
+-- Log an error
 local function handleError(message)
 	log("Error happened")
 	log("--------------")
 	log(message)
-	while 1 do
-		p('[{"full_text":"An error happened, look at /tmp/coffeestatus_log for more."}],')
-		io.flush()
-		sleep(1)
-		if errorInputCheck() then return end
-		p('[{"full_text":"Click the bar to try and continue running. This might make coffeestatus unstable."}],')
-		io.flush()
-		sleep(1)
-		if errorInputCheck() then return end
-	end
 end
 ---------------------
 -- Program startup --
@@ -144,6 +121,7 @@ local conf = io.open(filepath("", CONFIG_PATHS))
 local status, value = pcall(json.decode,conf:read("*a"))
 if not status then
 	handleError("Failed to read configuration file:\n"..value)
+	os.exit(1)
 end
 to_load = value
 conf:close()
@@ -153,21 +131,22 @@ for i=1, #to_load do
 	p('[{"full_text":"Loading module ' ..i.. "/" ..#to_load.. '"}],')
 	io.flush()
 	local path = filepath(to_load[i].name..".lua", MODULE_PATHS)
+	local failed = false
 	if path == nil then
 		handleError("Could not find module '" .. to_load[i].name .. "'")
-		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=noop, click=noop, interval=100000}
-		timers[i] = modules[i].interval
+		failed = true
 	else
 		local status, value = pcall(dofile,path)
 		if not status then
 			handleError("Failed to load module "..to_load[i].name..":\n"..value)
-			-- if user tries to continue after failed loading, replace module with
-			-- this stub
-			value = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=noop, click=noop, interval=100000}
+			failed = true
 		end
 		modules[i] = value
-		timers[i] = modules[i].interval
 	end
+	if failed then
+		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=noop, click=noop, interval=100000}
+	end
+	timers[i] = modules[i].interval
 end
 
 local changed = true
