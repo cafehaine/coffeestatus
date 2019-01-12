@@ -7,7 +7,7 @@
  - luaposix   : used for "nonblocking" io to read clicks from i3bar
      [ archlinux package: aur/lua-posix ]
  - luajson  : used to communicate back and forth with i3bar
-     [ archlinux package: extra/luajson ]
+     [ archlinux package: extra/lua-luajson ]
 ]]
 
 print('{"version":1,"click_events":true}')
