@@ -10,6 +10,9 @@
      [ archlinux package: extra/lua-luajson ]
 ]]
 
+-- Do nothing
+local function noop() end
+
 -- Return the value of an environment variable or default if it isn't set or is
 -- empty.
 local function getenv(variable, default)
@@ -137,7 +140,6 @@ end
 
 local modules = {}
 local timers = {}
-local home = os.getenv("HOME")
 local conf = io.open(filepath("", CONFIG_PATHS))
 local status, value = pcall(json.decode,conf:read("*a"))
 if not status then
@@ -153,7 +155,7 @@ for i=1, #to_load do
 	local path = filepath(to_load[i].name..".lua", MODULE_PATHS)
 	if path == nil then
 		handleError("Could not find module '" .. to_load[i].name .. "'")
-		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=function()end, click=function()end, interval=100000}
+		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=noop, click=noop, interval=100000}
 		timers[i] = modules[i].interval
 	else
 		local status, value = pcall(dofile,path)
@@ -161,7 +163,7 @@ for i=1, #to_load do
 			handleError("Failed to load module "..to_load[i].name..":\n"..value)
 			-- if user tries to continue after failed loading, replace module with
 			-- this stub
-			value = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=function()end, click=function()end, interval=100000}
+			value = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=noop, click=noop, interval=100000}
 		end
 		modules[i] = value
 		timers[i] = modules[i].interval
