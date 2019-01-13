@@ -169,14 +169,14 @@ local function handleInput(str)
 	end
 	-- reset timer since modules can change status during click events
 	timers[inst] = 0
-	changed = changed or oldstatus ~= modules[inst].status
+	return oldstatus ~= modules[inst].status
 end
 
 -- Main loop
 local oldtime = gettime()
 
+local changed = false
 while 1 do
-	local changed = false
 	local line = {}
 	-- compute delta time to be as accurate as possible for timers
 	local newtime = gettime()
@@ -209,7 +209,7 @@ while 1 do
 	-- (since we fully empty stdin after each read, events happen whenever
 	-- there is new inputs)
 	if rpoll(stdin,0) == 1 then
-		handleInput(io.read())
+		changed = handleInput(io.read()) or changed
 	end
 
 	sleep(0.05)
