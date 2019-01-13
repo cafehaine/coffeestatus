@@ -105,8 +105,8 @@ _G.print = log
 _G._print = p
 
 local output
-if getenv("TERM", nil) ~= nil then
-	output = require("output_handlers.term")
+if arg[1] then
+	output = require("output_handlers."..arg[1])
 else
 	output = require("output_handlers.i3")
 end
