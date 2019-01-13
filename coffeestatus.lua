@@ -70,10 +70,10 @@ if MODE == "dev" then
 	table.insert(CONFIG_PATHS, 1, BINARY_PATH.."default_conf.json")
 end
 
-print('{"version":1,"click_events":true}')
-print("[")
-print('[{"full_text":"Loading coffeestatus"}],')
-io.flush()
+-- Path for requirements
+if MODE == "installed" then
+	package.path = BINARY_PATH.."../lib/coffeestatus/?.lua;"..package.path
+end
 
 local posix = require("posix")
 local rpoll = require("posix.poll").rpoll
@@ -102,6 +102,9 @@ end
 
 local p = print
 _G.print = log
+_G._print = p
+
+local output = require("output_handlers.i3")
 
 print("Log started on " .. os.date())
 
@@ -128,8 +131,6 @@ conf:close()
 
 for i=1, #to_load do
 	_G.ARGS = to_load[i]
-	p('[{"full_text":"Loading module ' ..i.. "/" ..#to_load.. '"}],')
-	io.flush()
 	local path = filepath(to_load[i].name..".lua", MODULE_PATHS)
 	local failed = false
 	if path == nil then
@@ -148,9 +149,6 @@ for i=1, #to_load do
 	end
 	timers[i] = modules[i].interval
 end
-
-local changed = true
-local output = ""
 
 -- Treat str and call target module's click function
 local function handleInput(str)
@@ -174,47 +172,11 @@ local function handleInput(str)
 	changed = changed or oldstatus ~= modules[inst].status
 end
 
--- Pango suff
-
-local xmlPattern = "([%<%>%\"%'%&])"
-local xmlChars = {
-	["<"]="&lt;",
-	[">"]="&gt;",
-	['"']="&quot;",
-	["&"]="&amp;",
-	["'"]="&apos;"
-}
-
-local function escape(char)
-	return xmlChars[char]
-end
-
-local function escapeXml(str)
-	return str:gsub(xmlPattern,escape)
-end
-
-local function formatWithPango(tab)
-	local output = {}
-	for i=1,#tab do
-		if type(tab[i]) == "string" then
-			output[i] = escapeXml(tab[i])
-		else
-			local attributes = {}
-			for k,v in pairs(tab[i]) do
-				if k ~= "text" then
-					attributes[#attributes + 1] = k.."=\""..v.."\""
-				end
-			end
-			output[i] = "<span "..table.concat(attributes, " ")..">"..escapeXml(tab[i].text).."</span>"
-		end
-	end
-	return table.concat(output)
-end
-
 -- Main loop
 local oldtime = gettime()
 
 while 1 do
+	local changed = false
 	local line = {}
 	-- compute delta time to be as accurate as possible for timers
 	local newtime = gettime()
@@ -240,22 +202,8 @@ while 1 do
 	end
 	-- update only if at least one of the statuses changed
 	if changed then
-		for i = 1, #modules do
-			local tab = {
-				name = modules[i].name,
-				instance = tostring(i)}
-			if type(modules[i].status) == "table" then
-				tab.markup = "pango"
-				tab.full_text = formatWithPango(modules[i].status)
-			else
-				tab.full_text = modules[i].status
-			end
-			line[i] = json.encode(tab)
-		end
-		output = "["..table.concat(line,",").."],"
+		output.writestatus(modules)
 		changed = false
-		p(output)
-		io.flush()
 	end
 	-- read input only if an event happened on the fd for stdin
 	-- (since we fully empty stdin after each read, events happen whenever
