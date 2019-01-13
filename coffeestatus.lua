@@ -104,7 +104,12 @@ local p = print
 _G.print = log
 _G._print = p
 
-local output = require("output_handlers.i3")
+local output
+if getenv("TERM", nil) ~= nil then
+	output = require("output_handlers.term")
+else
+	output = require("output_handlers.i3")
+end
 
 print("Log started on " .. os.date())
 
