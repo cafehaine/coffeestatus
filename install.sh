@@ -14,7 +14,7 @@ install -m644 default_conf.json "${INSTALLROOT}"/etc/coffeestatus_conf.json
 # install the output handlers
 install -d "${INSTALLROOT}"/usr/lib/coffeestatus/output_handlers
 
-output_handlers=("i3" "term")
+output_handlers=("i3" "term" "init")
 for out in "${output_handlers[@]}"; do
 	install -m644 output_handlers/"$out.lua" "${INSTALLROOT}"/usr/lib/coffeestatus/output_handlers/
 done

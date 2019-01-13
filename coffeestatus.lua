@@ -72,7 +72,9 @@ end
 
 -- Path for requirements
 if MODE == "installed" then
-	package.path = BINARY_PATH.."../lib/coffeestatus/?.lua;"..package.path
+	package.path = BINARY_PATH.."../lib/coffeestatus/?/init.lua;"..
+		BINARY_PATH.."../lib/coffeestatus/?.lua;"..
+		package.path
 end
 
 local posix = require("posix")
@@ -104,12 +106,7 @@ local p = print
 _G.print = log
 _G._print = p
 
-local output
-if arg[1] then
-	output = require("output_handlers."..arg[1])
-else
-	output = require("output_handlers.i3")
-end
+local output = require("output_handlers")
 
 print("Log started on " .. os.date())
 
