@@ -1,6 +1,7 @@
 # coffeestatus
 ## What is coffeestatus?
 coffeestatus is a simple status generator to be used with any i3-compatible bars. It comes with a few modules that should be enough for any kind of day to day uses.
+![Coffeestatus screenshot](https://raw.githubusercontent.com/cafehaine/coffeestatus/master/screenshot.png)
 ## How do I install this?
 Just clone this repo and then run `sudo ./install.sh`.
 
