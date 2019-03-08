@@ -11,6 +11,10 @@ install -m755 coffeestatus.lua "${INSTALLROOT}"/usr/bin/coffeestatus
 install -d "${INSTALLROOT}"/etc
 install -m644 default_conf.json "${INSTALLROOT}"/etc/coffeestatus_conf.json
 
+# install utils library
+install -d "${INSTALLROOT}"/usr/lib/coffeestatus
+install -m644 utils.lua "${INSTALLROOT}"/usr/lib/coffeestatus/utils.lua
+
 # install the output handlers
 install -d "${INSTALLROOT}"/usr/lib/coffeestatus/output_handlers
 

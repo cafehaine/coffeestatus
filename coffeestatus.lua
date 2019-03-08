@@ -10,32 +10,6 @@
      [ archlinux package: extra/lua-luajson ]
 ]]
 
--- Do nothing
-local function noop() end
-
--- Return the value of an environment variable or default if it isn't set or is
--- empty.
-local function getenv(variable, default)
-	local value = os.getenv(variable)
-	if not value or value == "" then
-		return default
-	end
-	return value
-end
-
--- Return the first valid path for a file, starting from the end of the paths
--- table.
-local function filepath(filename, paths)
-	for i=#paths, 1, -1 do
-		file = io.open(paths[i]..filename)
-		if file then
-			file:close()
-			return paths[i]..filename
-		end
-	end
-	return nil
-end
-
 -- Detect if running dev or installed version based on the script's name
 MODE = "installed"
 if arg[0]:sub(-4) == ".lua" then
@@ -45,12 +19,31 @@ end
 -- Path of coffeestatus
 BINARY_PATH = arg[0]:match(".*/") or "./"
 
+-- Path for requirements
+if MODE == "installed" then
+	package.path = BINARY_PATH.."../lib/coffeestatus/?/init.lua;"..
+		BINARY_PATH.."../lib/coffeestatus/?.lua;"..
+		package.path
+end
+
+local utils = require("utils")
+local posix = require("posix")
+local rpoll = require("posix.poll").rpoll
+local stdin = require("posix.unistd").STDIN_FILENO
+local socket = require("socket")
+local json = require("json")
+-- if you don't want to use luasocket at all, replace the following functions
+-- to another module that you want to use
+local sleep = socket.sleep
+local gettime = socket.gettime
+
+
 -- Home
 HOME = os.getenv("HOME").."/"
 
 -- Paths for modules
 if MODE == "installed" then
-	local xdg_data_home = getenv("XDG_DATA_HOME", HOME..".local/share").."/"
+	local xdg_data_home = utils.getenv("XDG_DATA_HOME", HOME..".local/share").."/"
 	MODULE_PATHS = {
 		BINARY_PATH.."../lib/coffeestatus/modules/",
 		HOME..".coffeestatus/",
@@ -64,29 +57,11 @@ end
 CONFIG_PATHS = {
 	"/etc/coffeestatus_conf.json",
 	HOME..".coffeestatus/conf.json",
-	getenv("XDG_CONFIG_HOME", HOME..".config").."/coffeestatus/conf.json",
+	utils.getenv("XDG_CONFIG_HOME", HOME..".config").."/coffeestatus/conf.json",
 }
 if MODE == "dev" then
 	table.insert(CONFIG_PATHS, 1, BINARY_PATH.."default_conf.json")
 end
-
--- Path for requirements
-if MODE == "installed" then
-	package.path = BINARY_PATH.."../lib/coffeestatus/?/init.lua;"..
-		BINARY_PATH.."../lib/coffeestatus/?.lua;"..
-		package.path
-end
-
-local posix = require("posix")
-local rpoll = require("posix.poll").rpoll
-local stdin = require("posix.unistd").STDIN_FILENO
-local socket = require("socket")
-local json = require("json")
-
--- if you don't want to use luasocket at all, replace the following functions
--- to another module that you want to use
-local sleep = socket.sleep
-local gettime = socket.gettime
 
 -- remove access to print in order to prevent devs from "crashing" i3bar with
 -- random garbage in stdout
@@ -122,7 +97,7 @@ end
 
 local modules = {}
 local timers = {}
-local conf = io.open(filepath("", CONFIG_PATHS))
+local conf = io.open(utils.filepath("", CONFIG_PATHS))
 local status, value = pcall(json.decode,conf:read("*a"))
 if not status then
 	handleError("Failed to read configuration file:\n"..value)
@@ -131,9 +106,17 @@ end
 to_load = value
 conf:close()
 
+local global = {}
+for i=1,#to_load do
+	if to_load[i].name == "_GLOBAL" then
+		global = table.remove(to_load, i)
+		break
+	end
+end
+
 for i=1, #to_load do
-	_G.ARGS = to_load[i]
-	local path = filepath(to_load[i].name..".lua", MODULE_PATHS)
+	_G.ARGS = utils.overlaytables(global, to_load[i])
+	local path = utils.filepath(to_load[i].name..".lua", MODULE_PATHS)
 	local failed = false
 	if path == nil then
 		handleError("Could not find module '" .. to_load[i].name .. "'")
@@ -147,7 +130,7 @@ for i=1, #to_load do
 		modules[i] = value
 	end
 	if failed then
-		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=noop, click=noop, interval=100000}
+		modules[i] = {name=to_load[i].name,status="ERROR ["..to_load[i].name.."]",update=utils.noop, click=utils.noop, interval=100000}
 	end
 	timers[i] = modules[i].interval
 end

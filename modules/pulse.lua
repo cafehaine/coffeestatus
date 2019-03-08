@@ -18,7 +18,12 @@ local function init_pulseaudio()
 		end
 	end
 
-	status, connection = pcall(pulse.get_connection, pulse.get_address())
+	status, address = pcall(pulse.get_address)
+	if not status then
+		return
+	end
+
+	status, connection = pcall(pulse.get_connection, address)
 	if not status then
 		return
 	end
