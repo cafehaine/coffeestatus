@@ -1,3 +1,6 @@
+# Warning
+Coffeestatus is no longer maintained. I switched to sway and waybar. I will not push code here anymore.
+
 # coffeestatus
 ## What is coffeestatus?
 coffeestatus is a simple status generator to be used with any i3-compatible bars. It comes with a few modules that should be enough for any kind of day to day uses.
